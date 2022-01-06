@@ -1,0 +1,31 @@
+postgresql:
+  claimName: azurefiles-postgresql-pvc
+  container:
+    dataVolumeMountPath: /var/lib/postgresql/data
+
+persistentVolume:
+  name: postgresql-pv
+  spec:
+    capacity:
+      storage: 20Gi
+    accessModes:
+      - ReadWriteMany
+    storageClassName: azurefile
+    azureFile:
+      secretName: azurefilesecret
+      shareName: postgresql-shared
+      readOnly: false
+    mountOptions:
+    - dir_mode=0777
+    - file_mode=0777
+    - uid=1000
+    - gid=1000
+    - mfsymlinks
+    - nobrl
+
+persistentVolumeClaim:
+  name: azurefiles-postgresql-pvc
+  storage: 20Gi
+  storageClassName: azurefile
+  accessModes:
+    - ReadWriteMany

@@ -1,0 +1,25 @@
+postgresql:
+  claimName: nfs-postgresql-pvc
+  container:
+    dataVolumeMountPath: /var/lib/postgresql/data
+
+persistentVolume:
+  name: postgresql-pv
+  spec:
+    capacity:
+      storage: 20Gi
+    accessModes:
+      - ReadWriteMany
+    storageClassName: nfs
+    nfs:
+      path: /var/nfsshare/pvnfs0002
+      server: 10.0.0.50
+    mountOptions:
+    - hard
+
+persistentVolumeClaim:
+  name: nfs-postgresql-pvc
+  storage: 20Gi
+  storageClassName: nfs
+  accessModes:
+    - ReadWriteMany

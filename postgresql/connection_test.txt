@@ -1,0 +1,1 @@
+kubectl run postgres-client -n mlflow --rm --tty -i --restart='Never' --image postgres:14 --env="PGPASSWORD=<password goes here>>" --command -- psql -h postgresql-server -U postgres

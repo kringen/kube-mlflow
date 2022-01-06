@@ -1,0 +1,69 @@
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: {{ .Values.namespace }}
+  name: {{ .Values.postgresql.name }}
+  labels:
+    app: {{ .Values.postgresql.name }}
+spec:
+  ports:
+{{- with .Values.postgresql.service.ports }}
+{{ toYaml . | indent 2 }}
+{{- end }}
+  clusterIP: None
+  selector:
+    app: {{ .Values.postgresql.name }}
+
+---
+
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  namespace: {{ .Values.namespace }}
+  name: {{ .Values.postgresql.name }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Values.postgresql.name }} # has to match .spec.template.metadata.labels
+  serviceName: {{ .Values.postgresql.name }}
+  replicas: {{ .Values.postgresql.replicas }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.postgresql.name }} # has to match .spec.selector.matchLabels
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: {{ .Values.postgresql.container.name }}
+        image: {{ printf "%s:%s" .Values.postgresql.container.image .Values.postgresql.container.imageVersion }}
+        env:
+{{- with .Values.postgresql.container.env }}
+{{ toYaml . | indent 8 }}
+{{- end }}
+        command: 
+          {{  range .Values.postgresql.container.command }}
+            - {{ . }}
+          {{ end }}
+        args: 
+          {{  range .Values.postgresql.container.args }}
+            - {{ . }}
+          {{ end }}
+        ports:
+{{- with .Values.postgresql.container.ports }}
+{{ toYaml . | indent 8 }}
+{{- end }}
+        resources:
+{{- with .Values.postgresql.container.resources }}
+{{ toYaml . | indent 10 }}
+{{- end }}        
+        {{- if .Values.persistentVolumeClaim }}
+        volumeMounts:
+        - name: data-volume
+          mountPath: {{ .Values.postgresql.container.dataVolumeMountPath }}
+        {{- end }}
+      {{- if .Values.persistentVolume }}
+      volumes:
+      - name: data-volume
+        persistentVolumeClaim:
+          claimName: {{ .Values.postgresql.claimName }}
+      {{- end }}
